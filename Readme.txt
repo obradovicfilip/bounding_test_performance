@@ -37,8 +37,8 @@ grid_steps - Number of points in the grid in EACH dimension for the parameters t
              grid_steps*grid_steps. Default value of 316 yields ~ 100000 points for theta values. Integer scalar.
 gridsteps_s - Number of points in the grid in EACH dimension for S. Assumes S is rectangular. Integer scalar.
               Total number of points is gridsteps_s*gridsteps_s if both s1 and s0 are not known exactly. Otherwise, it is gridsteps_s.
-boot_samples - Number of bootstrap draws for the Romano, Shaikh and Wolf (2014) testing procedure. Original paper uses 500.
-               Integer scalar.
+boot_samples - Number of bootstrap draws for the Romano, Shaikh and Wolf (2014) testing procedure. Original paper uses 500. Integer scalar.
+               
 parallel - Parallelizes the procedure over multiple threads. May reduce computation time significantly. Boolean scalar.
 num_threads -Sets number of used threads to maximum. Value -1 uses all available threads. Integer scalar.
 graph_name = 'EUA_example' - Name of produced graph. Saved in the 'Graphs' folder. String.
@@ -76,5 +76,5 @@ and chosen parameters. The given example takes 10 minutes to complete on a Ryzen
   Try increasing grid_steps first, and gridsteps_s if the issue persists
 - Error returned: "scipy.spatial.qhull.QhullError: QH6154 Qhull precision error: Initial simplex is flat (facet 1 is coplanar with the interior point)"
   Probable reason - grid over parameter space too coarse. Try increasing grid_steps.
-- Lower bound is higher than the upper bound in the projected bounds. Check assumptions, some may not hold. This is not a sufficient conditon to
-  refute the assumptions.
+- Lower bound is higher than the upper bound in the projected bounds. Check assumptions, some may not hold. This is not a sufficient conditon to refute the assumptions.
+  
