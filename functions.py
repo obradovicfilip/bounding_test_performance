@@ -134,140 +134,8 @@ def moments(theta1, theta0, s1, s0, t1r1, t1r0, t0r1, t0r0, wrongly_agree_0=Fals
         return m1, m2, m3, m4, m5, m6, meq
 
 
-def moments_no_equality(theta1, theta0, s1, s0, t1r1, t1r0, t0r1, t0r0, wrongly_agree_0=False, wrongly_agree_1=False):
-    """
-    Returns the calculated moment functions for given parameters theta1, theta0, s1, s0, at each observation when
-    moment equality is not introduced explicitly.
 
-    :param theta1: Sensitivity of the index test. Float scalar
-    :param theta0: Specificity of the index test. Float scalar
-    :param s1: Sensitivity of the reference test. Float scalar
-    :param s0: Specificity of the reference test. Float scalar
-    :param t1r1: Number of positives on both tests. Integer scalar
-    :param t1r0: Number of subjects who were positive on the index, but negative on the reference test. Integer scalar
-    :param t0r1: Number of subjects who were negative on the index, but positive on the reference test. Integer scalar
-    :param t0r0: Number of negatives on both tests. Integer scalar
-    :param wrongly_agree_0: Tests have a tendency to wrongly agree for y=0. Default False. Boolean scalar
-    :param wrongly_agree_1: Tests have a tendency to wrongly agree for y=1. Default False. Boolean scalar
-    :return: Moment functions for each observation. List of lists
-    """
-
-    N = (t0r1 + t0r0 + t1r0 + t1r1)
-    ti1 = t1r1 + t1r0
-    ti = np.append(np.ones(ti1), np.zeros(N - ti1)).astype(int)  # Create a vector of data for ti
-    t = np.array([1] * t1r1 + [0] * t1r0 + [1] * t0r1 + [0] * t0r0)  # Create a conformal t
-    y = (t - 1 + s0) / (s1 - 1 + s0) # Create a y variable as a shorthand
-
-    # Calculate the moment inequality functions
-    m1 = ti * t - t + s1 * y - theta1 * y
-    m2 = y * (1 - s1) - (1 - ti) * (1 - t) - theta1 * y
-    m3 = y + ti - 1 - theta1 * y
-
-    if wrongly_agree_1 == True:
-        m4 = theta1 * y - ti
-        m5 = theta1 * y - ti * (1 - t) - s1 * y
-        m6 = theta1 * y - y * (1 - s1) / 2 - ti * t
-        m7 = theta1 * y - (s1 - (-1 + s1) / 2) * y
-
-    elif wrongly_agree_0 == True:
-        m4 = theta1 * y - ti + (t - s1 * y) / 2
-        m5 = theta1 * y - ti * (1 - t) - s1 * y
-        m6 = theta1 * y - y * (1 - s1) - ti * t \
-             + (t - s1 * y) / 2
-        m7 = theta1 * y - y
-
-    elif wrongly_agree_1 == True and wrongly_agree_0 == True:
-        m4 = theta1 * y - ti + (t - s1 * y) / 2
-        m5 = theta1 * y - ti * (1 - t) - s1 * y
-        m6 = theta1 * y - y * (1 - s1) / 2 - ti * t \
-             + (t - s1 * y) / 2
-        m7 = theta1 * y - (s1 - (-1 + s1) / 2) * y
-
-    else:
-        m4 = theta1 * y - ti
-        m5 = theta1 * y - ti * (1 - t) - s1 * y
-        m6 = theta1 * y - y * (1 - s1) - ti * t
-        meq1 = theta0 * (1 - y) - theta1 * y - (
-                1 - y) + ti
-        meq2 = theta1 * y + (1 - y) - ti - theta0 * (
-                1 - y)
-
-        return m1, m2, m3, m4, m5, m6, meq1, meq2
-
-    meq1 = theta0 * (1 - y) - theta1 * y - (
-                1 - y) + ti
-    meq2 = theta1 * y + (1 - y) - ti - theta0 * (
-                1 - y)
-
-    return m1, m2, m3, m4, m5, m6, m7, meq1, meq2
-
-
-def cck(theta1, theta0, s1, s0, t1r1, t1r0, t0r1, t0r0, alpha=0.05, method='SN', reps=10000,
-                    tol=10 ** (-15), wrongly_agree_0=False, wrongly_agree_1=False):
-    """
-    Returns the Chernozhukov, Chetverikov, Kato (2019) test result for given parameters theta1, theta0, s1 and s0.
-    Used for quick calculations. Only SN and TSSN variants.
-
-    :param theta1: Sensitivity of the index test. Float scalar
-    :param theta0: Specificity of the index test. Float scalar
-    :param s1: Sensitivity of the reference test. Float scalar
-    :param s0: Specificity of the reference test. Float scalar
-    :param t1r1: Number of positives on both tests. Integer scalar
-    :param t1r0: Number of subjects who were positive on the index, but negative on the reference test. Integer scalar
-    :param t0r1: Number of subjects who were negative on the index, but positive on the reference test. Integer scalar
-    :param t0r0: Number of negatives on both tests. Integer scalar
-    :param alpha: Significance level. Float scalar
-    :param method: Method of choosing the critical value. Possible values: "SN", "TSSN"
-    :param reps: Number of draws for the multiplier bootstrap method. Default 1000. Integer scalar
-    :param tol: Tolerance for censoring to zero to avoid float calculation errors. Default: 10**(-15). Float scalar
-    :param wrongly_agree_0: Tests have a tendency to wrongly agree for y=0. Default False. Boolean scalar
-    :param wrongly_agree_1: Tests have a tendency to wrongly agree for y=1. Default False. Boolean scalar
-    :return: True (reject) or False (do not reject)
-    """
-
-    ## First check the parameter space limitation
-    if wrongly_agree_1 == True and theta1>(1+s1)/2:
-        return False
-
-    if wrongly_agree_0 == True and theta0>(1+s0)/2:
-        return False
-
-    ## If in parameter space, proceed to test
-
-    data = np.stack(moments_no_equality(theta1, theta0, s1, s0, t1r1, t1r0, t0r1, t0r0,
-                            wrongly_agree_0=wrongly_agree_0, wrongly_agree_1=wrongly_agree_1),
-                            axis=1)  # stack all moment function values
-    N = t1r1 + t0r1 + t1r0 + t0r0
-
-    mbars = np.sum(data, axis=0) / N
-    mbars[abs(mbars) <= tol] = 0  # Set to 0 all those that are below precision tolerance
-    sigmas = np.sqrt(np.sum((data - mbars) ** 2, axis=0) / N)
-    with np.errstate(divide='ignore', invalid='ignore'):
-        tstats = np.divide(mbars, sigmas) * np.sqrt(N)
-
-    p = len(mbars)  # number of moment inequalities
-
-    if method == "SN":
-        c = norm.ppf(1 - alpha / p) / np.sqrt(1 - (norm.ppf(1 - alpha / p)) ** 2 / N)
-
-    elif method == "TSSN":
-        beta = alpha / np.sqrt(N)
-        cutoff = norm.ppf(1 - beta / p) / np.sqrt(1 - (norm.ppf(1 - beta / p)) ** 2 / N)
-        khat = np.sum(tstats[sigmas > tol] > -2 * cutoff)
-        if khat >= 1:
-            c = norm.ppf(1 - (alpha - 2 * beta) / khat) / np.sqrt(
-                1 - (norm.ppf(1 - (alpha - 2 * beta) / khat)) ** 2 / N)
-        else:
-            c = 0
-
-    tstats[sigmas <= tol] = mbars[sigmas <= tol] * np.sqrt(N)  # Set all tstats with zero sigma to mbar*sqrt(n)
-    keep_zero = all(tstats[sigmas <= tol] <= 0)  # Check if the zero sigmas yield non-rejections
-    test_stat = np.max(tstats[sigmas > tol])  # For all others calculate max
-    keep = test_stat <= c
-    return keep and keep_zero
-
-
-def bootstrap(t1r1, t1r0, t0r1, t0r0, boot_samples=500):
+def bootstrap(t1r1, t1r0, t0r1, t0r0, boot_samples=500, seed = False):
     """
    Auxiliary function for making non-parametric boostrap draws in Romano, Shaikh and Wolf (2014).
    Returns the list of tuples of bootstrap samples.
@@ -277,8 +145,12 @@ def bootstrap(t1r1, t1r0, t0r1, t0r0, boot_samples=500):
    :param t0r1: Number of subjects who were negative on the index, but positive on the reference test. Integer scalar
    :param t0r0: Number of negatives on both tests. Integer scalar
    :param boot_samples: Number of bootstrap samples. Default 500. Integer scalar
+   :param seed: Seed number. Default False. Boolean or integer scalar
    :return: List of tuples
    """
+
+    if seed!=False:
+        np.random.seed(seed)
 
     N = (t0r1 + t0r0 + t1r0 + t1r1)
     ti1 = t1r1 + t1r0
@@ -296,7 +168,7 @@ def bootstrap(t1r1, t1r0, t0r1, t0r0, boot_samples=500):
 
 
 def rsw(theta1, theta0, s1, s0, t1r1, t1r0, t0r1, t0r0, alpha=0.05, method='2', boot_samples=500,tol=10 ** (-15),
-        wrongly_agree_0=False, wrongly_agree_1=False):
+        wrongly_agree_0=False, wrongly_agree_1=False, seed=False):
     """
     Returns the Romano, Shaikh and Wolf (2014) (RSW henceforth) test result for given parameters theta1,
     theta0, s1 and s0.
@@ -315,6 +187,7 @@ def rsw(theta1, theta0, s1, s0, t1r1, t1r0, t0r1, t0r0, alpha=0.05, method='2', 
     :param tol: Tolerance for censoring to zero to avoid float calculation errors. Default: 10**(-15). Float scalar
     :param wrongly_agree_0: Tests have a tendency to wrongly agree for y=0. Default False. Boolean scalar
     :param wrongly_agree_1: Tests have a tendency to wrongly agree for y=1. Default False. Boolean scalar
+    :param seed: Seed number. Default False. Boolean or integer scalar
     :return: True (reject) or False (do not reject)
     """
 
@@ -338,7 +211,7 @@ def rsw(theta1, theta0, s1, s0, t1r1, t1r0, t0r1, t0r0, alpha=0.05, method='2', 
     sigmashats = np.sqrt(np.sum((data - mbars) ** 2, axis=0) / N)
 
     # Create set of bootstrap samples
-    bootstrap_samples = bootstrap(t1r1, t1r0, t0r1, t0r0, boot_samples)
+    bootstrap_samples = bootstrap(t1r1, t1r0, t0r1, t0r0, boot_samples, seed = seed)
 
     # Calculate boostrap statistics for c1
     boot_dataset = []
@@ -386,104 +259,9 @@ def rsw(theta1, theta0, s1, s0, t1r1, t1r0, t0r1, t0r0, alpha=0.05, method='2', 
     return keep
 
 
-def form_conf_sets_cck(s1, s0, t1r1, t1r0, t0r1, t0r0, alpha = 0.05, grid_steps=100, method='TSSN', reps = 1000,
-                        wrongly_agree_0=False, wrongly_agree_1=False, parallel = True, num_threads = -1):
-    """
-    Function that returns the confidence set using CCK. Faster than RSW, but the test is generally less powerful.
-
-    :param s1: Sensitivity of the reference test. Float scalar
-    :param s0: Specificity of the reference test. Float scalar
-    :param t1r1: Number of positives on both tests. Integer scalar
-    :param t1r0: Number of subjects who were positive on the index, but negative on the reference test. Integer scalar
-    :param t0r1: Number of subjects who were negative on the index, but positive on the reference test. Integer scalar
-    :param t0r0: Number of negatives on both tests. Integer scalar
-    :param alpha: Significance level. Float scalar
-    :param grid_steps: Number of points in the grid in EACH dimension for theta1 and theta 0.
-                       Total number grid_steps^2. Default 1000. Integer scalar
-    :param method: Test statistic type. Default "TSSN". Possible values: "SN", "TSSN", "MB"
-    :param reps: Number of draws for the multiplier bootstrap method. Default 1000. Integer scalar
-    :param parallel: Parallelization indicator. Boolean scalar
-    :param wrongly_agree_0: Tests have a tendency to wrongly agree for y=0. Default False. Boolean scalar
-    :param wrongly_agree_1: Tests have a tendency to wrongly agree for y=1. Default False. Boolean scalar
-    :param num_threads: Number of threads used in calculation. Default -1 - all available. Integer scalar
-    :return: List of points in confidence set
-    """
-    conf_set = []
-    # Makes 2d gridspace with grid_steps**2 points
-    theta_grid = np.array(np.meshgrid(np.linspace(0,1,grid_steps), np.linspace(0,1,grid_steps),indexing='ij')).reshape(2,-1).T
-    if parallel:
-        sol = Parallel(n_jobs=num_threads)(delayed(cck)(thetas[0], thetas[1], s1, s0, t1r1, t1r0, t0r1, t0r0,
-                                                        wrongly_agree_0=wrongly_agree_0, wrongly_agree_1=wrongly_agree_1,
-                                                        alpha=alpha, method=method, reps=reps)
-                              for thetas in theta_grid)
-        conf_set = theta_grid[sol]
-    else:
-        for thetas in theta_grid:
-            if cck(thetas[0], thetas[1], s1, s0, t1r1, t1r0, t0r1, t0r0,wrongly_agree_0=wrongly_agree_0,
-                    wrongly_agree_1=wrongly_agree_1,alpha=alpha, method=method, reps=reps):
-                conf_set.append(thetas)
-
-    conf_set = np.array(conf_set)
-    # try:
-    #     return np.array(sens_cf)[[1,-1]], np.array(spec_cf)[[1,-1]]
-    # except:
-    #     return np.array(sens_cf), np.array(spec_cf)
-    return conf_set
-
-def form_conf_sets_cck_unknown(s1, s0, t1r1, t1r0, t0r1, t0r0, alpha = 0.05, grid_steps=1000, gridsteps_s=1000,
-                               method='TSSN', reps = 1000, wrongly_agree_0=False,
-                               wrongly_agree_1=False, parallel = True, num_threads = -1):
-
-    """
-    Function that returns the confidence set using CCK. Faster than RSW, but the test is generally less powerful.
-    # Assumed S is rectangular.
-
-    :param s1: Sensitivity of the reference test. Float scalar
-    :param s0: Specificity of the reference test. Float scalar
-    :param t1r1: Number of positives on both tests. Integer scalar
-    :param t1r0: Number of subjects who were positive on the index, but negative on the reference test. Integer scalar
-    :param t0r1: Number of subjects who were negative on the index, but positive on the reference test. Integer scalar
-    :param t0r0: Number of negatives on both tests. Integer scalar
-    :param alpha: Significance level. Float scalar
-    :param grid_steps: Number of points in the grid in EACH dimension for theta1 and theta 0.
-                       Total number grid_steps^2. Default 1000. Integer scalar
-    :param method: Test statistic type. Default "TSSN". Possible values: "SN", "TSSN", "MB"
-    :param reps: Number of draws for the multiplier bootstrap method. Default 1000. Integer scalar
-    :param parallel: Parallelization indicator. Boolean scalar
-    :param wrongly_agree_0: Tests have a tendency to wrongly agree for y=0. Default False. Boolean scalar
-    :param wrongly_agree_1: Tests have a tendency to wrongly agree for y=1. Default False. Boolean scalar
-    :param num_threads: Number of threads used in calculation. Default -1 - all available. Integer scalar
-    :return: List of points in confidence set
-    """
-    conf_set = []
-    # Makes 4d gridspace with grid_steps**2+gridsteps_s**2 points
-    theta_grid = np.array(np.meshgrid(np.linspace(0,1,grid_steps), np.linspace(0,1,grid_steps),
-                                      np.linspace(s1[0],s1[1],gridsteps_s), np.linspace(s0[0],s0[1],gridsteps_s)
-                                      ,indexing='ij')).reshape(4,-1).T
-    theta_grid = np.unique(theta_grid,axis=0) # Drop duplicates in case s1 or s0 has singleton values
-
-
-    if parallel:
-        sol = Parallel(n_jobs=num_threads)(delayed(cck)(thetas[0], thetas[1], thetas[2], thetas[3], t1r1, t1r0, t0r1, t0r0,
-                                                        wrongly_agree_0=wrongly_agree_0, wrongly_agree_1=wrongly_agree_1,
-                                                        alpha=alpha, method=method, reps=reps)
-                              for thetas in theta_grid)
-        conf_set = theta_grid[sol]
-    else:
-        for thetas in theta_grid:
-            if cck(thetas[0], thetas[1], thetas[2], thetas[3], t1r1, t1r0, t0r1, t0r0,wrongly_agree_0=wrongly_agree_0,
-                    wrongly_agree_1=wrongly_agree_1,alpha=alpha, method=method, reps=reps):
-                conf_set.append(thetas)
-
-    conf_set = np.array(conf_set)
-    # try:
-    #     return np.array(sens_cf)[[1,-1]], np.array(spec_cf)[[1,-1]]
-    # except:
-    #     return np.array(sens_cf), np.array(spec_cf)
-    return conf_set
-
 def form_conf_sets(s1, s0, t1r1, t1r0, t0r1, t0r0, alpha = 0.05, grid_steps=1000, method = '2',
-                   boot_samples = 500, wrongly_agree_0=False, wrongly_agree_1=False, parallel = True, num_threads = -1):
+                   boot_samples = 500, wrongly_agree_0=False, wrongly_agree_1=False, parallel = True, num_threads = -1,
+                   seed = False):
     """
     Function that returns the confidence set using RSW for a known s1 and s0.
 
@@ -502,6 +280,7 @@ def form_conf_sets(s1, s0, t1r1, t1r0, t0r1, t0r0, alpha = 0.05, grid_steps=1000
     :param wrongly_agree_1: Tests have a tendency to wrongly agree for y=1. Default False. Boolean scalarr
     :param parallel: Parallelization indicator. Boolean scalar
     :param num_threads: Number of threads used in calculation. Default -1 - all available. Integer scalar
+    :param seed: Seed number. Default False. Boolean or integer scalar
     :return: List of points in confidence set
     """
     conf_set = []
@@ -509,7 +288,8 @@ def form_conf_sets(s1, s0, t1r1, t1r0, t0r1, t0r0, alpha = 0.05, grid_steps=1000
     if parallel:
         sol = Parallel(n_jobs=num_threads)(delayed(rsw)(thetas[0], thetas[1], s1, s0, t1r1, t1r0, t0r1, t0r0,
                                                         alpha=alpha, method = method, boot_samples=boot_samples,
-                                                        wrongly_agree_0=wrongly_agree_0, wrongly_agree_1=wrongly_agree_1)
+                                                        wrongly_agree_0=wrongly_agree_0, wrongly_agree_1=wrongly_agree_1,
+                                                        seed = seed)
                                             for thetas in theta_grid)
         conf_set = theta_grid[sol]
     else:
@@ -528,7 +308,7 @@ def form_conf_sets(s1, s0, t1r1, t1r0, t0r1, t0r0, alpha = 0.05, grid_steps=1000
 
 def form_conf_sets_rsw_unknown(s1, s0, t1r1, t1r0, t0r1, t0r0, alpha = 0.05, grid_steps=1000, gridsteps_s=1000,
                                method = '2',boot_samples = 500, wrongly_agree_0=False,
-                               wrongly_agree_1=False, parallel = True, num_threads = -1):
+                               wrongly_agree_1=False, parallel = True, num_threads = -1, seed=False):
     """
     Function that returns the confidence set using RSW when s1 and s0 in some set S. Assumed S is rectangular.
 
@@ -550,6 +330,7 @@ def form_conf_sets_rsw_unknown(s1, s0, t1r1, t1r0, t0r1, t0r0, alpha = 0.05, gri
     :param wrongly_agree_1: Tests have a tendency to wrongly agree for y=1. Default False. Boolean scalar
     :param parallel: Parallelization indicator. Boolean scalar
     :param num_threads: Number of threads used in calculation. Default -1 - all available. Integer scalar
+    :param seed: Seed number. Default False. Boolean or integer scalar
     :return: List of points in confidence set
     """
     conf_set = []
@@ -562,7 +343,8 @@ def form_conf_sets_rsw_unknown(s1, s0, t1r1, t1r0, t0r1, t0r0, alpha = 0.05, gri
     if parallel:
         sol = Parallel(n_jobs=num_threads)(delayed(rsw)(thetas[0], thetas[1], thetas[2], thetas[3], t1r1, t1r0, t0r1,
                                                         t0r0, alpha=alpha, method = method, boot_samples=boot_samples,
-                                                        wrongly_agree_0=wrongly_agree_0, wrongly_agree_1=wrongly_agree_1)
+                                                        wrongly_agree_0=wrongly_agree_0, wrongly_agree_1=wrongly_agree_1,
+                                                        seed = seed)
                                             for thetas in theta_grid)
         conf_set = theta_grid[sol]
     else:
@@ -759,7 +541,7 @@ def graphing(conf_set, estimated_set, t1r1,t1r0,t0r1,t0r0, alpha=0.05, filename 
 
 def calculate(s1, s0, t1r1,t1r0,t0r1,t0r0, wrongly_agree_0=False, wrongly_agree_1=True, grid_steps_estimate = 1000,
             grid_steps_conf = 316, gridsteps_s = 10, method = '2', boot_samples = 500, alpha=0.05,
-            parallel = True, num_threads = -1, filename='graph', include_apparent = True):
+            parallel = True, num_threads = -1, filename='graph', include_apparent = True, seed = False):
     """
     Omnibus function for calculation. Plots and saves graphs so the Graphs folder.
 
@@ -786,6 +568,7 @@ def calculate(s1, s0, t1r1,t1r0,t0r1,t0r0, wrongly_agree_0=False, wrongly_agree_
     :param filename: Name of the output graph. Default "conf_set". String
     :param include_apparent: If True, draws apparent estimates and corresponding projection confidence intervals.
                              Default True. Boolean scalar
+    :param seed: Seed number. Default False. Boolean or integer scalar
     :return: List of points in the estimated identified and confidence sets
     """
 
@@ -808,7 +591,8 @@ def calculate(s1, s0, t1r1,t1r0,t0r1,t0r0, wrongly_agree_0=False, wrongly_agree_
         conf_set = form_conf_sets_rsw_unknown(s1, s0, t1r1, t1r0, t0r1, t0r0, grid_steps=grid_steps_conf,
                                               gridsteps_s=gridsteps_s, method=method, alpha=alpha,
                                               boot_samples=boot_samples, parallel=parallel, num_threads=num_threads,
-                                              wrongly_agree_0=wrongly_agree_0, wrongly_agree_1=wrongly_agree_1)
+                                              wrongly_agree_0=wrongly_agree_0, wrongly_agree_1=wrongly_agree_1,
+                                              seed=seed)
 
         print("Estimates of apparent measures are :" + str([round(t1r1 / (t1r1 + t0r1), 3),
                                                             round(t0r0 / (t1r0 + t0r0), 3)]))
@@ -829,7 +613,7 @@ def calculate(s1, s0, t1r1,t1r0,t0r1,t0r0, wrongly_agree_0=False, wrongly_agree_
 
         conf_set = form_conf_sets(s1, s0, t1r1, t1r0, t0r1, t0r0, grid_steps=grid_steps_conf, method=method, alpha=alpha,
                                   boot_samples=boot_samples, parallel=parallel, num_threads=num_threads,
-                                   wrongly_agree_0=wrongly_agree_0, wrongly_agree_1=wrongly_agree_1)
+                                   wrongly_agree_0=wrongly_agree_0, wrongly_agree_1=wrongly_agree_1, seed=seed)
         print("Estimates of apparent measures are :" + str([round(t1r1 / (t1r1 + t0r1), 3),
                                                             round(t0r0 / (t1r0 + t0r0), 3)]))
         print("Estimated projection bounds for (theta1, theta0) are: " + str([[estimated_set[0, 0],
