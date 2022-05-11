@@ -7,7 +7,6 @@
 ############################################# Import Modules ###########################################################
 
 import numpy as np
-from scipy.stats import norm
 import statsmodels.stats.proportion as stats
 import matplotlib
 matplotlib.use('Agg')
@@ -17,8 +16,12 @@ from joblib import Parallel, delayed
 from scipy.spatial import ConvexHull
 
 #Graph Options
-font = font_manager.FontProperties(family='Times New Roman', style='normal', size=16)  # Set font for graphs
+font_legend = font_manager.FontProperties(family='Times New Roman', style='normal', size=20)  # Set font for graphs
+font_axes = font_manager.FontProperties(family='Times New Roman', style='normal', size=16)  # Set font for graphs
 tol = 10**-10 # Tolerance for maximum
+
+# Display Options
+np.seterr(divide='ignore', invalid='ignore') # Ignore divide by 0 errors in output that may occur in bootstrap draws
 
 ############################################ Defining functions ########################################################
 
@@ -531,7 +534,7 @@ def graphing(conf_set, estimated_set, t1r1,t1r0,t0r1,t0r0, alpha=0.05, filename 
     # Order legend
     handles, labels = ax.get_legend_handles_labels()
     labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
-    ax.legend(handles, labels,prop=font, loc=4)
+    ax.legend(handles, labels,prop=font_legend, loc=4)
     # ax.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, -0.05),
     #           fancybox=True, shadow=True, ncol=5,prop=font)
     # ax.legend()
