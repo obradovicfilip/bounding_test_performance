@@ -9,7 +9,6 @@
 import numpy as np
 import statsmodels.stats.proportion as stats
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as font_manager
 from joblib import Parallel, delayed
@@ -19,6 +18,7 @@ from scipy.spatial import ConvexHull
 font_legend = font_manager.FontProperties(family='Times New Roman', style='normal', size=20)  # Set font for graphs
 font_axes = font_manager.FontProperties(family='Times New Roman', style='normal', size=16)  # Set font for graphs
 tol = 10**-10 # Tolerance for maximum
+matplotlib.use('Agg')
 
 # Display Options
 np.seterr(divide='ignore', invalid='ignore') # Ignore divide by 0 errors in output that may occur in bootstrap draws

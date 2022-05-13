@@ -3,10 +3,11 @@
 ## Developed by: Filip Obradović. Email: obradovicfilip@u.northwestern.edu
 
 """ Script intended for applications. Yields estimated identified sets for the true sensitivity and specificity.
-    Forms confidence sets for sensitivity and sepcificity.
+    Forms confidence sets for sensitivity and specificity.
 
     Procedure is computationally intensive. It can take up to several hours to complete depending on the available
-    resources and chosen parameters. Example below takes 10 minutes to complete on a Ryzen 9 3900X with 12 cores.
+    resources and chosen parameters. Example below takes 10 minutes to complete on an AMD Ryzen 9 3900X CPU
+    with 12 cores.
 
     The example is for the Abbott BinaxNow COVID-19 Ag EUA study results.
 """
