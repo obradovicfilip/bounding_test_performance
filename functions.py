@@ -165,11 +165,10 @@ def moments(theta1, theta0, s1, s0, t1r1, t1r0, t0r1, t0r0, wrongly_agree_0=Fals
         m4 = theta1 * y - ti
         m5 = theta1 * y - ti * (1 - t) - s1 * y
         m6 = theta1 * y - y * (1 - s1) / 2 - ti * t
-        m7 = theta1 * y - (s1 - (-1 + s1) / 2) * y
         meq = theta0 * (1 - y) - theta1 * y - (
                 1 - y) + ti
 
-        return m1, m2, m3, m4, m5, m6, m7, meq
+        return m1, m2, m3, m4, m5, m6, meq
 
     elif wrongly_agree_0 == True and wrongly_agree_1 == False:
         m1 = (-theta0 + s0) * (1 - y) + ti * (t - 1)
@@ -178,20 +177,18 @@ def moments(theta1, theta0, s1, s0, t1r1, t1r0, t0r1, t0r0, wrongly_agree_0=Fals
         m4 = theta0 * (1 - y) + (ti - 1)
         m5 = (theta0 - s0) * (1 - y) - t * (1 - ti)
         m6 = (theta0 + (-1 + s0) / 2) * (1 - y) - (1 - ti) * (1 - t)
-        m7 = (theta0 - s0 + (-1 + s0) / 2) * (1 - y)
         meq = theta0 * (1 - y) - theta1 * y - (
                 1 - y) + ti
 
-        return m1, m2, m3, m4, m5, m6, m7, meq
+        return m1, m2, m3, m4, m5, m6, meq
 
     elif wrongly_agree_1 == True and wrongly_agree_0 == True:
         m4 = theta1 * y - ti + 1 / 2 * (t - s1 * y)
         m5 = theta1 * y - ti * (1 - t) - s1 * y
         m6 = (theta1 + (-1 + s1) / 2) * y - t * ti + 1 / 2 * (t - s1 * y)
-        m7 = (theta1 - s1 + (-1 + s1) / 2) * y
         meq = theta0 * (1 - y) - theta1 * y - (1 - y) + ti
 
-        return m1, m2, m3, m4, m5, m6, m7, meq
+        return m1, m2, m3, m4, m5, m6, meq
 
     else:
         m4 = theta1 * y - ti
