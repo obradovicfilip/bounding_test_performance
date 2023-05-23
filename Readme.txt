@@ -76,5 +76,4 @@ and chosen parameters. The given example takes 10 minutes to complete on a Ryzen
   Try increasing grid_steps first, and gridsteps_s if the issue persists
 - Error returned: "scipy.spatial.qhull.QhullError: QH6154 Qhull precision error: Initial simplex is flat (facet 1 is coplanar with the interior point)"
   Probable reason - grid over parameter space too coarse. Try increasing grid_steps.
-- Lower bound is higher than the upper bound in the projected bounds. Check assumptions, some may not hold. This is not a sufficient conditon to
-  refute the assumptions.
+- Lower bound is higher than the upper bound in the projected bounds. Check assumptions, some may not hold. This is not a sufficient conditon to refute the assumptions.
